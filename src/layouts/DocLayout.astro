@@ -1,13 +1,34 @@
 ---
 import '../styles/global.css';
 
+interface Frontmatter {
+  title?: string;
+  [key: string]: any;
+}
+
+interface MarkdownPage {
+  url: string | undefined;
+  frontmatter: Frontmatter;
+}
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  frontmatter: Frontmatter;
+  headings?: Heading[];
+}
+
 const { frontmatter, headings } = Astro.props;
 
 // Fetch all markdown files for the sidebar
-const allPages = Object.values(import.meta.glob('../pages/**/*.md', { eager: true }));
+const allPages = Object.values(import.meta.glob<MarkdownPage>('../pages/**/*.md', { eager: true }));
 
 // Group pages by directory
-const sidebarNav = allPages.reduce((acc, page) => {
+const sidebarNav = allPages.reduce<Record<string, { title: string; url: string | undefined }[]>>((acc, page) => {
   // `page.url` contains the URL path. For index.md it might be empty string or `/`.
   const path = page.url || '/';
   const parts = path.split('/').filter(Boolean);
@@ -27,10 +48,10 @@ const sidebarNav = allPages.reduce((acc, page) => {
 }, {});
 
 // Generate TOC (h2 and h3)
-const toc = headings ? headings.filter(h => h.depth === 2 || h.depth === 3) : [];
+const toc = headings ? headings.filter((h: Heading) => h.depth === 2 || h.depth === 3) : [];
 
 // Helper to resolve URL with BASE_URL for GitHub Pages
-const resolvePath = (url) => {
+const resolvePath = (url: string | undefined) => {
   if (url === undefined || url === '') return import.meta.env.BASE_URL;
   if (url.startsWith(import.meta.env.BASE_URL)) return url;
   const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
