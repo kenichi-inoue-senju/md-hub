@@ -1,0 +1,139 @@
+---
+import '../styles/global.css';
+
+const { frontmatter, headings } = Astro.props;
+
+// Fetch all markdown files for the sidebar
+const allPages = Object.values(import.meta.glob('../pages/**/*.md', { eager: true }));
+
+// Group pages by directory
+const sidebarNav = allPages.reduce((acc, page) => {
+  // `page.url` contains the URL path. For index.md it might be empty string or `/`.
+  const path = page.url || '/';
+  const parts = path.split('/').filter(Boolean);
+  
+  const category = parts.length > 1 ? parts[0] : 'Home';
+  
+  if (!acc[category]) {
+    acc[category] = [];
+  }
+  
+  acc[category].push({
+    title: page.frontmatter.title || 'Untitled',
+    url: page.url,
+  });
+  
+  return acc;
+}, {});
+
+// Generate TOC (h2 and h3)
+const toc = headings ? headings.filter(h => h.depth === 2 || h.depth === 3) : [];
+
+// Helper to resolve URL with BASE_URL for GitHub Pages
+const resolvePath = (url) => {
+  if (url === undefined || url === '') return import.meta.env.BASE_URL;
+  if (url.startsWith(import.meta.env.BASE_URL)) return url;
+  const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+  return `${base}${url.replace(/^\//, '')}`;
+};
+---
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{frontmatter.title || 'Documentation'}</title>
+  </head>
+  <body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col md:flex-row">
+    
+    <!-- Sidebar -->
+    <aside class="w-full md:w-64 bg-white border-r border-slate-200 flex-shrink-0 relative">
+      <div class="md:fixed md:w-64 h-full md:h-screen sm:block overflow-y-auto hidden">
+        <div class="p-6 border-b border-slate-100">
+          <a href={import.meta.env.BASE_URL} class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent tracking-tight">DocHub</a>
+        </div>
+        <nav class="px-4 py-6">
+          {Object.entries(sidebarNav).map(([category, pages]) => (
+            <div class="mb-6">
+              <h3 class="px-2 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                {category}
+              </h3>
+              <ul class="space-y-1">
+                {pages.map((item) => (
+                  <li>
+                    <a
+                      href={resolvePath(item.url)}
+                      class="block px-2 py-1.5 text-sm font-medium text-slate-600 rounded-md hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                    >
+                      {item.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
+      </div>
+      
+      <!-- Mobile header fallback -->
+      <div class="md:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 shadow-sm sticky top-0 z-10">
+        <a href={import.meta.env.BASE_URL} class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">DocHub</a>
+        <div class="text-xs text-slate-500 font-medium bg-slate-100 px-2 py-1 rounded">Menu below</div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex justify-center px-4 md:px-8 py-8 md:py-12 w-full max-w-full overflow-hidden">
+      <article class="w-full max-w-3xl markdown-body bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-slate-200/60 ring-1 ring-slate-900/5">
+        <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 mb-8">{frontmatter.title}</h1>
+        <slot />
+      </article>
+      
+      <!-- Table of Contents -->
+      {toc.length > 0 && (
+        <aside class="hidden xl:block w-64 ml-10 flex-shrink-0">
+          <div class="sticky top-12">
+            <h4 class="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider">On this page</h4>
+            <ul class="space-y-2.5 text-sm border-l border-slate-200">
+              {toc.map((heading) => (
+                <li class={`pl-4 border-l-2 -ml-[1px] transition-colors ${heading.depth === 2 ? 'border-transparent text-slate-700 font-medium' : 'border-transparent text-slate-500 ml-2'}`}>
+                  <a href={`#${heading.slug}`} class="block hover:text-blue-600 truncate py-0.5">
+                    {heading.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </aside>
+      )}
+    </main>
+
+    <!-- Mobile Sidebar Fallback (bottom of page) -->
+    <div class="md:hidden bg-slate-50 border-t border-slate-200 p-6 pb-12">
+      <h2 class="text-lg font-bold mb-6 text-slate-800">Navigation</h2>
+      <nav class="space-y-6">
+        {Object.entries(sidebarNav).map(([category, pages]) => (
+          <div>
+            <h3 class="mb-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
+              {category}
+            </h3>
+            <ul class="space-y-2 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+              {pages.map((item) => (
+                <li>
+                  <a
+                    href={resolvePath(item.url)}
+                    class="block text-sm text-slate-600 hover:text-blue-600 font-medium"
+                  >
+                    {item.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
+    </div>
+
+  </body>
+</html>
