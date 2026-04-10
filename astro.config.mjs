@@ -3,7 +3,7 @@ import tailwind from '@astrojs/tailwind';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://username.github.io',
+  site: 'https://kenichi-inoue-senju.github.io',
   base: '/md-hub',
   integrations: [tailwind()],
   markdown: {
