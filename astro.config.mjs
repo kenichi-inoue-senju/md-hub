@@ -7,8 +7,8 @@ const { SITE, BASE } = loadEnv(process.env.NODE_ENV || 'development', process.cw
 
 // https://astro.build/config
 export default defineConfig({
-  site: SITE || 'https://example.com',
-  base: BASE || '/',
+  site: SITE || undefined,
+  base: BASE || undefined,
   integrations: [tailwind()],
   markdown: {
     shikiConfig: {
