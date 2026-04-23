@@ -29,8 +29,15 @@ const allPages = Object.values(import.meta.glob<MarkdownPage>('../pages/**/*.md'
 
 // Group pages by directory
 const sidebarNav = allPages.reduce<Record<string, { title: string; url: string | undefined }[]>>((acc, page) => {
-  // `page.url` contains the URL path. For index.md it might be empty string or `/`.
-  const path = page.url || '/';
+  let path = page.url || '/';
+  
+  // BASE_URL が設定されている場合（GitHub Pagesなど）、URLからBASE_URLのプレフィックスを除去してからカテゴリを判定する
+  const base = import.meta.env.BASE_URL;
+  if (base && base !== '/' && path.startsWith(base)) {
+    path = path.slice(base.length);
+    if (!path.startsWith('/')) path = '/' + path;
+  }
+  
   const parts = path.split('/').filter(Boolean);
   
   const category = parts.length > 1 ? parts[0] : 'Home';
