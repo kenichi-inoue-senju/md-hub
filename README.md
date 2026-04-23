@@ -106,7 +106,33 @@ src/pages/
 
 ```bash
 npm run dev
+```bash
+npm run dev
 ```
+
+## GitHub Pages へのデプロイ
+
+このテンプレートは GitHub Actions を使用して自動デプロイするように構成されています。
+
+### 1. GitHub Secrets の設定
+
+リポジトリの **Settings > Secrets and variables > Actions** に移動し、以下の **Repository secrets** を登録してください。
+
+| 名前 | 値の例 | 説明 |
+| :--- | :--- | :--- |
+| `SITE` | `https://username.github.io` | 公開サイトのベースURL |
+| `BASE` | `/repository-name` | 公開パス（リポジトリ名など） |
+
+### 2. GitHub Actions の有効化
+
+1.  リポジトリの **Settings > Pages** に移動します。
+2.  **Build and deployment > Source** で **「GitHub Actions」** を選択します。
+
+### 3. デプロイの実行
+
+`main` ブランチにコードをプッシュ（またはマージ）すると、自動的にビルドとデプロイが開始されます。進捗はリポジトリの **Actions** タブから確認できます。
+
+---
 
 ## コントリビュート
 

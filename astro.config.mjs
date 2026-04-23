@@ -1,10 +1,14 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
+import { loadEnv } from 'vite';
+
+// 環境変数を読み込む (第3引数を '' にすることで全ての変数を取得)
+const { SITE, BASE } = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), '');
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://kenichi-inoue-senju.github.io',
-  base: '/md-hub',
+  site: SITE || 'https://example.com',
+  base: BASE || '/',
   integrations: [tailwind()],
   markdown: {
     shikiConfig: {
