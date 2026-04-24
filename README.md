@@ -132,17 +132,22 @@ npm run dev
 
 このテンプレートは GitHub Actions を使用して自動デプロイするように構成されています。
 
-### 1. GitHub Variables の設定
+### 1. GitHub Repository Variables の設定
 
-リポジトリの **Settings > Secrets and variables > Actions** に移動し、**Variables** タブで以下を登録してください。
+リポジトリの **Settings > Secrets and variables > Actions** に移動し、以下の手順で **Repository variables** に登録してください。
+
+1. **Variables** タブをクリック（Secrets ではなく Variables）
+2. **New repository variable** ボタンをクリック
+3. 以下 2 つの変数を登録：
 
 | 名前 | 値の例 | 説明 |
 | :--- | :--- | :--- |
 | `SITE` | `https://username.github.io` | 公開サイトのベースURL |
 | `BASE` | `/repository-name` | 公開パス（リポジトリ名など） |
 
-> **注意**  
-> 値は **Repository variables** に登録してください。Secrets ではなく Variables を使用することで、ワークフロー実行ログに値が表示され、デバッグが容易になります。
+> **重要**  
+> **Repository variables** に登録してください。Environment variables では動作しません。  
+> Variables を使用することで、ワークフロー実行ログに値が表示されるため、デバッグが容易になります。
 
 ### 2. GitHub Actions の有効化
 
