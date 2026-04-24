@@ -30,6 +30,24 @@ cd md-hub
 npm install
 ```
 
+### 環境変数の設定
+
+ローカルでの開発と GitHub Pages でのデプロイに必要な環境変数を設定します。
+
+1. `.env.example` をコピーして `.env` を作成します：
+   ```bash
+   cp .env.example .env
+   ```
+
+2. `.env` を編集して、デプロイ先のサイト情報を設定します：
+   ```env
+   SITE=https://username.github.io
+   BASE=/repository-name
+   ```
+
+> **LOCAL** – ローカル開発時は `.env` から環境変数が読み込まれます。  
+> **CI (GitHub Actions)** – GitHub Actions では Repository variables から読み込まれます。
+
 ### 開発サーバーの起動
 
 ```bash
@@ -114,14 +132,17 @@ npm run dev
 
 このテンプレートは GitHub Actions を使用して自動デプロイするように構成されています。
 
-### 1. GitHub Secrets の設定
+### 1. GitHub Variables の設定
 
-リポジトリの **Settings > Secrets and variables > Actions** に移動し、以下の **Repository secrets** を登録してください。
+リポジトリの **Settings > Secrets and variables > Actions** に移動し、**Variables** タブで以下を登録してください。
 
 | 名前 | 値の例 | 説明 |
 | :--- | :--- | :--- |
 | `SITE` | `https://username.github.io` | 公開サイトのベースURL |
 | `BASE` | `/repository-name` | 公開パス（リポジトリ名など） |
+
+> **注意**  
+> 値は **Repository variables** に登録してください。Secrets ではなく Variables を使用することで、ワークフロー実行ログに値が表示され、デバッグが容易になります。
 
 ### 2. GitHub Actions の有効化
 

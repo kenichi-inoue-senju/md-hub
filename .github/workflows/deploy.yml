@@ -20,6 +20,11 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
+# Node.js 20 は 2026-06-02 以降デフォルトで Node.js 24 に強制移行されるため、今すぐ opt-in する
+# 参考: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -30,8 +35,8 @@ jobs:
       - name: Install, build, and upload your site
         uses: withastro/action@v3
         env:
-          SITE: ${{ secrets.SITE }}
-          BASE: ${{ secrets.BASE }}
+          SITE: ${{ vars.SITE }}
+          BASE: ${{ vars.BASE }}
         # with:
           # path: . # The root location of your Astro project inside the repository. (optional)
           # node-version: 20 # The specific version of Node that should be used to build your site. Defaults to 20. (optional)
