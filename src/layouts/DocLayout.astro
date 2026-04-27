@@ -27,6 +27,23 @@ const { frontmatter, headings } = Astro.props;
 // Fetch all markdown files for the sidebar
 const allPages = Object.values(import.meta.glob<MarkdownPage>('../pages/**/*.md', { eager: true }));
 
+// Resolve the site title from the home page (src/pages/index.md) frontmatter
+const homePage = allPages.find((page) => {
+  const url = page.url || '/';
+  const base = import.meta.env.BASE_URL;
+  const normalized = base && base !== '/' && url.startsWith(base) ? url.slice(base.length) || '/' : url;
+  return normalized === '/' || normalized === '';
+});
+const siteTitle = homePage?.frontmatter.title || 'Documentation';
+
+// 現在ページが Home (index.md) かどうかを判定
+const currentPath = Astro.url.pathname;
+const baseUrl = import.meta.env.BASE_URL;
+const normalizedCurrent = baseUrl && baseUrl !== '/' && currentPath.startsWith(baseUrl)
+  ? currentPath.slice(baseUrl.length) || '/'
+  : currentPath;
+const isHome = normalizedCurrent === '/' || normalizedCurrent === '';
+
 // Group pages by directory
 const sidebarNav = allPages.reduce<Record<string, { title: string; url: string | undefined }[]>>((acc, page) => {
   let path = page.url || '/';
@@ -39,8 +56,9 @@ const sidebarNav = allPages.reduce<Record<string, { title: string; url: string |
   }
   
   const parts = path.split('/').filter(Boolean);
-  
-  const category = parts.length > 1 ? parts[0] : 'Home';
+
+  // index.md → "Home" / トップ階層の他 md → "Documents" / サブディレクトリ → 最上位ディレクトリ名
+  const category = parts.length === 0 ? 'Home' : parts.length === 1 ? 'Documents' : parts[0];
   
   if (!acc[category]) {
     acc[category] = [];
@@ -50,9 +68,16 @@ const sidebarNav = allPages.reduce<Record<string, { title: string; url: string |
     title: page.frontmatter.title || 'Untitled',
     url: page.url,
   });
-  
+
   return acc;
 }, {});
+
+// サイドバーのカテゴリ表示順: Home → Documents → サブディレクトリ名（アルファベット順）
+const categoryOrder = (name: string) => (name === 'Home' ? 0 : name === 'Documents' ? 1 : 2);
+const sortedSidebarNav = Object.entries(sidebarNav).sort(([a], [b]) => {
+  const diff = categoryOrder(a) - categoryOrder(b);
+  return diff !== 0 ? diff : a.localeCompare(b);
+});
 
 // Generate TOC (h2 and h3)
 const toc = headings ? headings.filter((h: Heading) => h.depth === 2 || h.depth === 3) : [];
@@ -79,10 +104,10 @@ const resolvePath = (url: string | undefined) => {
     <aside class="w-full md:w-64 bg-white border-r border-slate-200 flex-shrink-0 relative">
       <div class="md:fixed md:w-64 h-full md:h-screen sm:block overflow-y-auto hidden">
         <div class="p-6 border-b border-slate-100">
-          <a href={import.meta.env.BASE_URL} class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent tracking-tight">DocHub</a>
+          <a href={import.meta.env.BASE_URL} class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent tracking-tight">{siteTitle}</a>
         </div>
         <nav class="px-4 py-6">
-          {Object.entries(sidebarNav).map(([category, pages]) => (
+          {sortedSidebarNav.map(([category, pages]) => (
             <div class="mb-6">
               <h3 class="px-2 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
                 {category}
@@ -106,7 +131,7 @@ const resolvePath = (url: string | undefined) => {
       
       <!-- Mobile header fallback -->
       <div class="md:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 shadow-sm sticky top-0 z-10">
-        <a href={import.meta.env.BASE_URL} class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">DocHub</a>
+        <a href={import.meta.env.BASE_URL} class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{siteTitle}</a>
         <div class="text-xs text-slate-500 font-medium bg-slate-100 px-2 py-1 rounded">Menu below</div>
       </div>
     </aside>
@@ -114,7 +139,7 @@ const resolvePath = (url: string | undefined) => {
     <!-- Main Content -->
     <main class="flex-1 flex justify-center px-4 md:px-8 py-8 md:py-12 w-full max-w-full overflow-hidden">
       <article class="w-full max-w-3xl markdown-body bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-slate-200/60 ring-1 ring-slate-900/5">
-        <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 mb-8">{frontmatter.title}</h1>
+        {isHome && <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 mb-8">ようこそ {siteTitle} へ</h1>}
         <slot />
       </article>
       
@@ -141,7 +166,7 @@ const resolvePath = (url: string | undefined) => {
     <div class="md:hidden bg-slate-50 border-t border-slate-200 p-6 pb-12">
       <h2 class="text-lg font-bold mb-6 text-slate-800">Navigation</h2>
       <nav class="space-y-6">
-        {Object.entries(sidebarNav).map(([category, pages]) => (
+        {sortedSidebarNav.map(([category, pages]) => (
           <div>
             <h3 class="mb-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
               {category}

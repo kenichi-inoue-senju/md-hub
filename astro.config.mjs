@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import { loadEnv } from 'vite';
+import { remarkDefaultFrontmatter } from './remark-default-frontmatter.mjs';
 
 // 環境変数を読み込む (第3引数を '' にすることで全ての変数を取得)
 // ローカル: .env ファイルから、CI (GitHub Actions): process.env から取得
@@ -14,6 +15,7 @@ export default defineConfig({
   base: BASE || undefined,
   integrations: [tailwind()],
   markdown: {
+    remarkPlugins: [remarkDefaultFrontmatter],
     shikiConfig: {
       theme: 'github-dark',
       wrap: true,
